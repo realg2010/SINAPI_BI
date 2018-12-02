@@ -1,0 +1,32 @@
+    SUBROUTINE TEST.CALLJ
+DEBUG
+         className = 'com.callj.test.callj'
+         methodName = 'testMethod'
+         REQUEST = 'AIX is angry'
+         *CRT "Please enter a Class Name " :  ;   INPUT className
+         *CRT "Please enter a Method Name " :  ;  INPUT methodName
+         *CRT "Please enter a Parameter : "  ; INPUT param
+         *CALLJ className,methodName, param SETTING ret ON ERROR 
+       CALLJ "com.callj.test.callj", "mymethod", REQUEST SETTING V.RESPONSE ON ERROR GOSUB HANDLE_ERROR
+
+         err = SYSTEM(0)
+         HANDLE_ERROR:
+
+         IF err = 2 THEN
+              PRINT "Cannot find the JVM.dll !"
+              RETURN
+         END
+         IF err = 3 THEN
+              PRINT "Class " : className : "doesn't exist !"
+              RETURN
+         END
+    *
+         IF err = 5 THEN
+      	      PRINT "Method " : methodName : "doesn't exist !"
+              RETURN
+         END
+         PRINT "Received batch from Java : " : ret
+        RETURN
+    RETURN
+
+    END

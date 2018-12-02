@@ -1,0 +1,54 @@
+*-----------------------------------------------------------------------------
+* <Rating>-31</Rating>
+*-----------------------------------------------------------------------------
+    SUBROUTINE TXN.MONTHLY
+*
+* This Program Extracts Loans from SD.DEAL
+
+    $INSERT I_COMMON
+    $INSERT I_EQUATE
+    $INSERT I_F.CATEG.ENTRY
+
+MAIN.PROCESS:
+*============
+    GOSUB OPEN.FILES
+    GOSUB PROCESS.EXTRACT
+    RETURN
+
+OPEN.FILES:
+*============
+    FN.CAT = 'F.CATEG.ENTRY'
+    FV.CAT = ''
+    CALL OPF(FN.CAT,FV.CAT)
+
+    DLM='|'
+    EMP=''
+
+    OPENSEQ '.','TXN.MONTHLY_':TODAY:'.txt' TO F.LOG ELSE
+        CREATE F.LOG ELSE
+        CRT 'CANNOT CREATE LOG'
+    END
+    END
+RETURN
+PROCESS.EXTRACT:
+*============
+DEBUG
+    SEL.CMD='SELECT ':FN.CAT:" WITH CUSTOMER NE '' BY @ID"
+    CALL EB.READLIST(SEL.CMD,CAT.LIST.IDS,'',NO.OF.ID,'')
+    LOOP
+        REMOVE CAT.ID FROM CAT.LIST.IDS SETTING YPOS
+    WHILE CAT.ID:YPOS
+        CALL F.READ(FN.CAT,CAT.ID,CAT.REC,FV.CAT,CAT.ERR)
+                 
+            OUT.STR='1':DLM:'1':DLM:CAT.REC<AC.CAT.COMPANY.CODE>:DLM:CAT.REC<AC.CAT.CUSTOMER.ID>
+            OUT.STR:=DLM:CAT.REC<AC.CAT.ACCOUNT.NUMBER>:DLM:EMP:DLM:CAT.REC<AC.CAT.PL.CATEGORY>
+            OUT.STR:=DLM:CAT.REC<AC.CAT.CURRENCY>:DLM:CAT.REC<AC.CAT.AMOUNT.FCY>:DLM:CAT.REC<AC.CAT.AMOUNT.LCY>
+            OUT.STR:=DLM:CAT.REC<AC.CAT.OUR.REFERENCE>:DLM:CAT.REC<AC.CAT.BOOKING.DATE>:DLM:TODAY[1,6]
+            
+            WRITESEQ OUT.STR TO F.LOG ELSE
+        CRT 'CANNOT WRITE'
+    END
+    CAT.ID ='' ;		CAT.REC='' ;		OUT.STR='' ; 
+    REPEAT
+    RETURN
+    END
